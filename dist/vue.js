@@ -1,6 +1,6 @@
 /*!
  * Vue.js v2.5.17-beta.0
- * (c) 2014-2018 Evan You
+ * (c) 2014-2019 Evan You
  * Released under the MIT License.
  */
 (function (global, factory) {
@@ -441,6 +441,12 @@ var config = ({
   mustUseProp: no,
 
   /**
+   * Perform updates asynchronously. Intended to be used by Vue Test Utils
+   * This will significantly reduce performance if set to false.
+   */
+  async: true,
+
+  /**
    * Exposed for legacy reasons
    */
   _lifecycleHooks: LIFECYCLE_HOOKS
@@ -699,6 +705,12 @@ Dep.prototype.depend = function depend () {
 Dep.prototype.notify = function notify () {
   // stabilize the subscriber list first
   var subs = this.subs.slice();
+  if ("development" !== 'production' && !config.async) {
+    // subs aren't sorted in scheduler if not running async
+    // we need to sort them now to make sure they fire in correct
+    // order
+    subs.sort(function (a, b) { return a.id - b.id; });
+  }
   for (var i = 0, l = subs.length; i < l; i++) {
     subs[i].update();
   }
@@ -1631,11 +1643,10 @@ function assertProp (
       valid = assertedType.valid;
     }
   }
+
   if (!valid) {
     warn(
-      "Invalid prop: type check failed for prop \"" + name + "\"." +
-      " Expected " + (expectedTypes.map(capitalize).join(', ')) +
-      ", got " + (toRawType(value)) + ".",
+      getInvalidTypeMessage(name, value, expectedTypes),
       vm
     );
     return
@@ -1700,6 +1711,49 @@ function getTypeIndex (type, expectedTypes) {
     }
   }
   return -1
+}
+
+function getInvalidTypeMessage (name, value, expectedTypes) {
+  var message = "Invalid prop: type check failed for prop \"" + name + "\"." +
+    " Expected " + (expectedTypes.map(capitalize).join(', '));
+  var expectedType = expectedTypes[0];
+  var receivedType = toRawType(value);
+  var expectedValue = styleValue(value, expectedType);
+  var receivedValue = styleValue(value, receivedType);
+  // check if we need to specify expected value
+  if (expectedTypes.length === 1 &&
+      isExplicable(expectedType) &&
+      !isBoolean(expectedType, receivedType)) {
+    message += " with value " + expectedValue;
+  }
+  message += ", got " + receivedType + " ";
+  // check if we need to specify received value
+  if (isExplicable(receivedType)) {
+    message += "with value " + receivedValue + ".";
+  }
+  return message
+}
+
+function styleValue (value, type) {
+  if (type === 'String') {
+    return ("\"" + value + "\"")
+  } else if (type === 'Number') {
+    return ("" + (Number(value)))
+  } else {
+    return ("" + value)
+  }
+}
+
+function isExplicable (value) {
+  var explicitTypes = ['string', 'number', 'boolean'];
+  return explicitTypes.some(function (elem) { return value.toLowerCase() === elem; })
+}
+
+function isBoolean () {
+  var args = [], len = arguments.length;
+  while ( len-- ) args[ len ] = arguments[ len ];
+
+  return args.some(function (elem) { return elem.toLowerCase() === 'boolean'; })
 }
 
 /*  */
@@ -3065,6 +3119,11 @@ function queueWatcher (watcher) {
     // queue the flush
     if (!waiting) {
       waiting = true;
+
+      if ("development" !== 'production' && !config.async) {
+        flushSchedulerQueue();
+        return
+      }
       nextTick(flushSchedulerQueue);
     }
   }
@@ -5675,7 +5734,7 @@ function createPatchFunction (backend) {
   function insert (parent, elm, ref$$1) {
     if (isDef(parent)) {
       if (isDef(ref$$1)) {
-        if (ref$$1.parentNode === parent) {
+        if (nodeOps.parentNode(ref$$1) === parent) {
           nodeOps.insertBefore(parent, elm, ref$$1);
         }
       } else {

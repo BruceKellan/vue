@@ -71,7 +71,7 @@
     "@types/webpack": "^3.0.13",
     "acorn": "^5.2.1",
     "babel-core": "^6.25.0",
-    "babel-eslint": "^8.0.3",
+    "babel-eslint": "^10.0.1",
     "babel-helper-vue-jsx-merge-props": "^2.0.2",
     "babel-loader": "^7.0.0",
     "babel-plugin-istanbul": "^4.1.4",
@@ -93,7 +93,7 @@
     "escodegen": "^1.8.1",
     "eslint": "^4.13.1",
     "eslint-loader": "^1.7.1",
-    "eslint-plugin-flowtype": "^2.34.0",
+    "eslint-plugin-flowtype": "^3.4.2",
     "eslint-plugin-jasmine": "^2.8.4",
     "eslint-plugin-vue-libs": "^2.0.1",
     "file-loader": "^1.1.5",
@@ -146,5 +146,11 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "plugins": [
+      "flowtype"
+    ]
   }
 }

@@ -15,6 +15,7 @@ const idToTemplate = cached(id => {
 })
 
 const mount = Vue.prototype.$mount
+// runtime+compiler 独有，先缓存原本mount函数，然后做完对el，template的解析后，再调用runtime/index.js中定义的$mount
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean

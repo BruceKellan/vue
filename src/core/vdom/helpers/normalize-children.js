@@ -21,7 +21,7 @@ export function simpleNormalizeChildren (children: any) {
       return Array.prototype.concat.apply([], children)
     }
   }
-  return children
+  return
 }
 
 // 2. When the children contains constructs that always generated nested Arrays,
@@ -30,6 +30,7 @@ export function simpleNormalizeChildren (children: any) {
 // is needed to cater to all possible types of children values.
 export function normalizeChildren (children: any): ?Array<VNode> {
   return isPrimitive(children)
+    // 文本VNode
     ? [createTextVNode(children)]
     : Array.isArray(children)
       ? normalizeArrayChildren(children)
@@ -40,6 +41,7 @@ function isTextNode (node): boolean {
   return isDef(node) && isDef(node.text) && isFalse(node.isComment)
 }
 
+// 返回一个一维的VNode
 function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNode> {
   const res = []
   let i, c, lastIndex, last

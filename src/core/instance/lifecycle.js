@@ -136,11 +136,13 @@ export function mountComponent (
   el: ?Element,
   hydrating?: boolean
 ): Component {
+  // 缓存在vm.$el
   vm.$el = el
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
+      // 使用了 runtime only版本，但是又写了template
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
         vm.$options.el || el) {
         warn(
@@ -150,6 +152,7 @@ export function mountComponent (
           vm
         )
       } else {
+        // 没有template，也没有render函数
         warn(
           'Failed to mount component: template or render function not defined.',
           vm
@@ -179,7 +182,9 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // 挂载DOM，不止是使用一次，后期需要进行更新
     updateComponent = () => {
+      // _render生成一个VNode，_update把VNode挂载到DOM上
       vm._update(vm._render(), hydrating)
     }
   }
@@ -187,6 +192,7 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 渲染Watcher
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted) {

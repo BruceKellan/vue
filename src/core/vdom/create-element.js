@@ -33,6 +33,7 @@ export function createElement (
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 函数重载，往前挪
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
@@ -51,12 +52,14 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // VNodeData 不能是响应式的，__ob__是响应式对象的一个标记
   if (isDef(data) && isDef((data: any).__ob__)) {
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
       'Always create fresh vnode data objects in each render!',
       context
     )
+    // 注释节点
     return createEmptyVNode()
   }
   // object syntax in v-bind
@@ -65,6 +68,7 @@ export function _createElement (
   }
   if (!tag) {
     // in case of component :is set to falsy value
+    // 注释节点
     return createEmptyVNode()
   }
   // warn against non-primitive key

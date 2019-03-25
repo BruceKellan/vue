@@ -42,6 +42,7 @@ if (process.env.NODE_ENV !== 'production') {
     })
   }
 
+  // 判断是否有定义对应的[key]
   const hasHandler = {
     has (target, key) {
       const has = key in target
@@ -69,6 +70,7 @@ if (process.env.NODE_ENV !== 'production') {
       const handlers = options.render && options.render._withStripped
         ? getHandler
         : hasHandler
+      // 代理模式，增加handlers
       vm._renderProxy = new Proxy(vm, handlers)
     } else {
       vm._renderProxy = vm

@@ -35,6 +35,7 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+// 代理，将对vm.[key]重定向到vm._data.[key]
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -111,6 +112,7 @@ function initProps (vm: Component, propsOptions: Object) {
 
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 判断data 是否函数
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
@@ -127,6 +129,8 @@ function initData (vm: Component) {
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // 初始化Vue组件时，会把vm.$options的 state key, prop key, method key 挂载到vm._data.[key]上，使用的是ES5的get set
+  // 这里判断一下组件的key名是否重复出现
   while (i--) {
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
@@ -143,6 +147,7 @@ function initData (vm: Component) {
         `Use prop default value instead.`,
         vm
       )
+    // 判断是否保留字
     } else if (!isReserved(key)) {
       proxy(vm, `_data`, key)
     }
